@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Logs
+*.log
+logs/
+runs/
+wandb/
+
+# Build / ROS / colcon
+build/
+devel/
+install/
+log/
+.colcon/
+
+# Data / models
+data/
+dataset/
+datasets/
+checkpoints/
+weights/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.engine
+
+# Simulation outputs
+videos/
+renders/
+recordings/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
