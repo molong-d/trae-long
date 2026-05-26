@@ -1,0 +1,57 @@
+{
+  "app": {
+    "db_path": "intelligence_hub/data/intelligence.db",
+    "log_path": "intelligence_hub/logs/fetch.log",
+    "digest_path": "intelligence_hub/reports/latest_digest.md",
+    "dashboard_host": "127.0.0.1",
+    "dashboard_port": 8765
+  },
+  "fetch": {
+    "default_limit": 20,
+    "min_watch_interval_seconds": 60
+  },
+  "sources": {
+    "gdelt": {
+      "enabled": true,
+      "category": "world",
+      "keywords": ["geopolitics", "war", "election", "central bank", "AI"]
+    },
+    "hackernews": {
+      "enabled": true,
+      "category": "tech",
+      "limit": 30
+    },
+    "arxiv": {
+      "enabled": true,
+      "category": "science",
+      "queries": ["cat:cs.AI", "cat:cs.LG", "cat:cs.CL"],
+      "limit": 10
+    },
+    "sec_edgar": {
+      "enabled": false,
+      "category": "finance",
+      "user_agent": "local-intelligence-hub contact@example.com",
+      "ciks": ["0000320193", "0000789019", "0001045810"]
+    },
+    "coingecko": {
+      "enabled": true,
+      "category": "crypto",
+      "coins": ["bitcoin", "ethereum", "solana"]
+    },
+    "rss": {
+      "enabled": true,
+      "feeds": [
+        {
+          "name": "BBC World",
+          "category": "world",
+          "url": "http://feeds.bbci.co.uk/news/world/rss.xml"
+        },
+        {
+          "name": "NASA Breaking News",
+          "category": "science",
+          "url": "https://www.nasa.gov/rss/dyn/breaking_news.rss"
+        }
+      ]
+    }
+  }
+}

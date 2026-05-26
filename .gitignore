@@ -46,3 +46,8 @@ recordings/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local Intelligence Hub - Generated files
+intelligence_hub/data/*.db
+intelligence_hub/logs/*.log
+intelligence_hub/reports/latest_digest.md
