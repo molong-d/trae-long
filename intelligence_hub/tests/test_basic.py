@@ -84,6 +84,24 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(len(items), 1)
         self.assertEqual(items[0]["title"], "Test Item")
 
+    def test_get_items_with_source_filter(self):
+        item = {
+            "source": "hackernews",
+            "category": "tech",
+            "title": "HN Item",
+            "url": "https://example.com/hn",
+            "published_at": "2024-01-01T00:00:00",
+            "fetched_at": "2024-01-01T00:00:00",
+            "summary": "Summary",
+            "raw": {}
+        }
+
+        self.db.insert_item(item)
+        items = self.db.get_items(source="hackernews")
+
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["source"], "hackernews")
+
     def test_get_stats(self):
         item = {
             "source": "test",
@@ -103,6 +121,8 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(stats["total_items"], 1)
         self.assertIn("test", stats["categories"])
         self.assertEqual(stats["categories"]["test"], 1)
+        self.assertIn("sources", stats)
+        self.assertIn("last_fetch_time", stats)
 
 
 class TestScoring(unittest.TestCase):
@@ -153,6 +173,51 @@ class TestScoring(unittest.TestCase):
 
         self.assertGreater(score_sec, score_normal)
 
+    def test_watchlist_keywords(self):
+        ImportanceScorer._watchlist = None
+        ImportanceScorer._watchlist_enabled = True
+
+        item_no_watchlist = {
+            "source": "rss",
+            "category": "tech",
+            "title": "AI announces new model",
+            "summary": "Latest AI development",
+            "url": "https://example.com"
+        }
+        ImportanceScorer._watchlist = ["openai", "nvidia", "bitcoin"]
+
+        item_with_watchlist = {
+            "source": "rss",
+            "category": "tech",
+            "title": "OpenAI announces new model",
+            "summary": "Latest AI development",
+            "url": "https://example.com"
+        }
+        score_with_watchlist = ImportanceScorer.calculate(item_with_watchlist)
+
+        ImportanceScorer._watchlist = []
+        score_no_watchlist = ImportanceScorer.calculate(item_no_watchlist)
+
+        self.assertGreater(score_with_watchlist, score_no_watchlist)
+
+    def test_watchlist_match(self):
+        ImportanceScorer._watchlist = None
+        ImportanceScorer._watchlist_enabled = True
+        ImportanceScorer._watchlist = ["openai", "nvidia", "bitcoin"]
+
+        item_match = {
+            "title": "OpenAI announces GPT-5",
+            "summary": "New model released"
+        }
+
+        item_no_match = {
+            "title": "Weather forecast",
+            "summary": "Sunny day ahead"
+        }
+
+        self.assertTrue(ImportanceScorer.check_watchlist_match(item_match))
+        self.assertFalse(ImportanceScorer.check_watchlist_match(item_no_match))
+
 
 class TestConfig(unittest.TestCase):
     def test_sources_json(self):
@@ -170,6 +235,17 @@ class TestConfig(unittest.TestCase):
         self.assertIn("coingecko", config["sources"])
         self.assertIn("rss", config["sources"])
 
+    def test_watchlist_config(self):
+        config_path = Path(__file__).parent.parent / "config" / "sources.json"
+
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        self.assertIn("watchlist", config)
+        self.assertTrue(config["watchlist"].get("enabled", False))
+        self.assertIn("keywords", config["watchlist"])
+        self.assertGreater(len(config["watchlist"]["keywords"]), 0)
+
     def test_config_paths(self):
         config_path = Path(__file__).parent.parent / "config" / "sources.json"
 
@@ -182,6 +258,20 @@ class TestConfig(unittest.TestCase):
         self.assertIn("dashboard_host", config["app"])
         self.assertIn("dashboard_port", config["app"])
 
+    def test_rss_feeds_config(self):
+        config_path = Path(__file__).parent.parent / "config" / "sources.json"
+
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        self.assertIn("feeds", config["sources"]["rss"])
+        self.assertGreater(len(config["sources"]["rss"]["feeds"]), 0)
+
+        for feed in config["sources"]["rss"]["feeds"]:
+            self.assertIn("name", feed)
+            self.assertIn("url", feed)
+            self.assertIn("category", feed)
+
 
 class TestDigest(unittest.TestCase):
     def setUp(self):
@@ -190,6 +280,7 @@ class TestDigest(unittest.TestCase):
         self.db = Database(Path(self.temp_db.name))
         self.db.init_db()
         self.generator = DigestGenerator(self.db)
+        ImportanceScorer._watchlist = None
 
     def tearDown(self):
         os.unlink(self.temp_db.name)
@@ -216,6 +307,26 @@ class TestDigest(unittest.TestCase):
 
         digest = self.generator.generate()
         self.assertIn("Test Item", digest)
+
+    def test_digest_watchlist_section(self):
+        ImportanceScorer._watchlist_enabled = True
+        ImportanceScorer._watchlist = ["openai", "ai"]
+
+        item = {
+            "source": "hackernews",
+            "category": "tech",
+            "title": "OpenAI announces GPT-5",
+            "url": "https://example.com/openai",
+            "published_at": "2024-01-01T00:00:00",
+            "fetched_at": "2024-01-01T00:00:00",
+            "summary": "Latest AI news",
+            "importance_score": 60,
+            "raw": {}
+        }
+        self.db.insert_item(item)
+
+        digest = self.generator.generate()
+        self.assertIn("Watchlist Matched", digest)
 
 
 if __name__ == "__main__":

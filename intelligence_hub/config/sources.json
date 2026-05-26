@@ -10,11 +10,17 @@
     "default_limit": 20,
     "min_watch_interval_seconds": 60
   },
+  "watchlist": {
+    "enabled": true,
+    "keywords": ["OpenAI", "Anthropic", "Nvidia", "semiconductor", "AI", "central bank", "inflation", "recession", "war", "sanctions", "Bitcoin", "Ethereum"]
+  },
   "sources": {
     "gdelt": {
       "enabled": true,
       "category": "world",
-      "keywords": ["geopolitics", "war", "election", "central bank", "AI"]
+      "keywords": ["geopolitics", "war", "election", "central bank", "AI"],
+      "limit": 20,
+      "timespan": "1d"
     },
     "hackernews": {
       "enabled": true,
@@ -36,7 +42,8 @@
     "coingecko": {
       "enabled": true,
       "category": "crypto",
-      "coins": ["bitcoin", "ethereum", "solana"]
+      "coins": ["bitcoin", "ethereum", "solana"],
+      "vs_currency": "usd"
     },
     "rss": {
       "enabled": true,
@@ -50,6 +57,26 @@
           "name": "NASA Breaking News",
           "category": "science",
           "url": "https://www.nasa.gov/rss/dyn/breaking_news.rss"
+        },
+        {
+          "name": "MIT Technology Review",
+          "category": "tech",
+          "url": "https://www.technologyreview.com/feed/"
+        },
+        {
+          "name": "NPR World News",
+          "category": "world",
+          "url": "https://feeds.npr.org/1001/rss.xml"
+        },
+        {
+          "name": "Yahoo Finance Latest",
+          "category": "finance",
+          "url": "https://finance.yahoo.com/news/rssindex"
+        },
+        {
+          "name": "Federal Reserve Press",
+          "category": "finance",
+          "url": "https://www.federalreserve.gov/feeds/press_all.xml"
         }
       ]
     }

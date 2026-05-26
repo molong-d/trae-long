@@ -181,6 +181,9 @@ class Database:
         cursor.execute("SELECT category, COUNT(*) as count FROM items GROUP BY category")
         categories = {row["category"]: row["count"] for row in cursor.fetchall()}
 
+        cursor.execute("SELECT source, COUNT(*) as count FROM items GROUP BY source")
+        sources = {row["source"]: row["count"] for row in cursor.fetchall()}
+
         cursor.execute("""
             SELECT * FROM fetch_runs
             ORDER BY started_at DESC
@@ -188,10 +191,16 @@ class Database:
         """)
         recent_runs = [dict(row) for row in cursor.fetchall()]
 
+        last_fetch_time = None
+        if recent_runs:
+            last_fetch_time = recent_runs[0].get("finished_at") or recent_runs[0].get("started_at")
+
         conn.close()
 
         return {
             "total_items": total_items,
             "categories": categories,
-            "recent_runs": recent_runs
+            "sources": sources,
+            "recent_runs": recent_runs,
+            "last_fetch_time": last_fetch_time
         }
